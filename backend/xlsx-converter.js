@@ -10,20 +10,32 @@ const jsonData = XLSX.utils.sheet_to_json(sheet);
 const xml = xmlbuilder.create('items');
 
 for (const data of jsonData) {
-  xml.ele('item')
-    .ele('g:id', {}, data.id).up()
-    .ele('g:title', {}, data.title).up()
-    .ele('g:description', {}, data.description).up()
-    .ele('g:price', {}, data.price).up()
-    .ele('g:sale_price', {}, data.sale_price).up()
-    .ele('g:image_link', {}, data.image_link).up()
-    .ele('g:image_link', {}, data.additional_image_link).up()
-    .ele('g:link', {}, data.link).up()
-    .ele('g:availability', {}, data.availability).up()
-    .ele('g:google_product_category', {}, data.google_product_category).up()
-    .ele('g:product_type', {}, data.product_type).up()
-    .ele('g:brand', {}, data.brand).up()
-    .up();
+  const item = xml.ele('item');
+
+  item.ele('g:id', {}, `<![CDATA[${data.id}]]>`).up()
+    .ele('g:title', {}, `<![CDATA[${data.title}]]>`).up()
+    .ele('g:description', {}, `<![CDATA[${data.description}]]>`).up()
+    .ele('link', {}, `<![CDATA[${data.link}]]>`).up()
+    .ele('g:image_link', {}, `<![CDATA[${data.image_link}]]>`).up();
+
+  // Verificar se additional_image_link é uma string antes de tentar iterar sobre ela
+  if (typeof data.additional_image_link === 'string') {
+    item.ele('g:additional_image_link', {}, `<![CDATA[${data.additional_image_link}]]>`).up();
+  } else if (Array.isArray(data.additional_image_link)) {
+    // Se additional_image_link for um array, incluir cada link adicional
+    data.additional_image_link.forEach(additionalImageLink => {
+      item.ele('g:additional_image_link', {}, `<![CDATA[${additionalImageLink}]]>`).up();
+    });
+  }
+
+  item.ele('g:condition', {}, 'New').up()
+    .ele('g:availability', {}, 'in stock').up()
+    .ele('g:price', {}, `${data.price} BRL`).up()
+    .ele('g:sale_price', {}, `${data.sale_price} BRL`).up()
+    .ele('g:google_product_category', {}, `<![CDATA[${data.google_product_category}]]>`).up()
+    .ele('g:product_type', {}, `<![CDATA[${data.product_type}]]>`).up()
+    .ele('g:brand', {}, `<![CDATA[${data.brand}]]>`).up()
+    .ele('g:gtin', {}, `<![CDATA[${data.gtin}]]>`).up();
 }
 
 xml.end({ pretty: true });
